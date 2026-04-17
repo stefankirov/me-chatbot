@@ -15,7 +15,7 @@ PORT="${PORT:-8000}"
 exec gunicorn \
   -w 2 \
   -k uvicorn.workers.UvicornWorker \
-  app.main:app \
+  asgi:app \
   --timeout 120 \
   --bind "0.0.0.0:${PORT}" \
   --access-logfile - \

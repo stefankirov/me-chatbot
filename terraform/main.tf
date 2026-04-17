@@ -49,7 +49,7 @@ resource "azurerm_linux_web_app" "chatbot" {
     }
 
     # Gunicorn + Uvicorn worker for async FastAPI support
-    app_command_line = "gunicorn -w 2 -k uvicorn.workers.UvicornWorker app.main:app --timeout 120 --bind 0.0.0.0:8000"
+    app_command_line = "gunicorn -w 2 -k uvicorn.workers.UvicornWorker asgi:app --timeout 120 --bind 0.0.0.0:8000"
   }
 
   app_settings = {
