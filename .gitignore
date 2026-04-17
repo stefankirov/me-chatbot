@@ -136,6 +136,7 @@ celerybeat.pid
 
 # Environments
 .env
+!.env.example
 .envrc
 .venv
 env/
@@ -205,3 +206,13 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+profile.txt
+
+# Terraform
+terraform/.terraform/
+terraform/terraform.tfvars
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform.lock.hcl
+profile.example.txt
+readme.md

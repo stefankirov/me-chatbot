@@ -1,0 +1,29 @@
+# Copy this file to terraform.tfvars and fill in your values.
+# terraform.tfvars is gitignored — never commit it.
+
+subscription_id       = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+resource_group_name   = "chatbot-rg"
+location              = "eastus2"
+app_service_plan_name = "chatbot-plan"
+app_service_name      = "me-chatbot"   # must be globally unique
+
+openai_api_key        = "sk-proj-..."
+
+email_smtp_host       = "smtp.gmail.com"
+email_smtp_port       = 587
+email_sender          = "you@gmail.com"
+email_password        = "xxxx xxxx xxxx xxxx"
+email_recipient       = "you@gmail.com"
+
+# Comma-separated origins — set to your personalweb URL after first deploy
+# e.g. "https://wonderful-wave-abc123.azurestaticapps.net"
+cors_origins          = "*"
+
+# Paste the full contents of your profile.txt here (keep the quotes, escape any internal quotes)
+profile_content       = <<EOT
+My name is .... I am a Senior Software Engineer...
+EOT
+
+# Shared secret between your frontend and this API.
+# Generate one with: openssl rand -hex 32
+chatbot_api_key       = "replace-with-a-long-random-string"

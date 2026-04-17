@@ -1,0 +1,23 @@
+name: Deploy Chatbot to Azure App Service
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          # Set AZURE_WEBAPP_NAME as a GitHub Actions variable (not secret) under Settings > Environments > production
+          app-name: ${{ vars.AZURE_WEBAPP_NAME }}
+          # Set AZURE_WEBAPP_PUBLISH_PROFILE as a GitHub Actions secret with the XML from:
+          # az webapp deployment list-publishing-profiles --name <app-name> --resource-group <rg> --xml
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: .

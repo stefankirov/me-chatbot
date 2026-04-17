@@ -1,0 +1,13 @@
+[project]
+name = "me-chatbot"
+version = "0.1.0"
+description = "Personal AI chatbot for Stefan Kirov's website"
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=1.0.0",
+    "gradio>=4.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+chatbot = "app:main"
