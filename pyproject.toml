@@ -1,13 +1,18 @@
 [project]
 name = "me-chatbot"
-version = "0.1.0"
-description = "Personal AI chatbot for Stefan Kirov's website"
-requires-python = ">=3.10"
+version = "0.2.0"
+description = "Personal AI chatbot API for Stefan Kirov's website"
+requires-python = ">=3.12"
 dependencies = [
     "openai>=1.0.0",
-    "gradio>=4.0.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "gunicorn>=21.0.0",
     "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+    "slowapi>=0.1.9",
 ]
 
-[project.scripts]
-chatbot = "app:main"
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
