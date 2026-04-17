@@ -6,7 +6,7 @@ from fastapi import HTTPException, Request, status
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from config import settings
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 

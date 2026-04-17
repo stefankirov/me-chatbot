@@ -7,7 +7,7 @@ import os
 from openai import OpenAI
 
 from app.tools import TOOL_REGISTRY, TOOL_SCHEMAS
-from config import settings
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 

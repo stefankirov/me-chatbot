@@ -9,7 +9,7 @@ from slowapi import _rate_limit_exceeded_handler
 
 from app.routes import router
 from app.security import limiter
-from config import settings
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
