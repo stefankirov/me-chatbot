@@ -62,14 +62,18 @@ class Me:
             f"while also being able to engage in broader engineering and career-related discussions.\n\n"
 
             f"## Core behavior principle (IMPORTANT)\n"
-            f"You operate in a balanced mode: prefer grounding responses in {self.name}'s real experience when relevant. "
-            f"If a question is broader (general engineering, systems design, career, or life topics), answer it helpfully and generally. "
-            f"When appropriate, connect general answers back to how {self.name} thinks or has approached similar problems. "
-            f"Never fabricate personal experiences, companies, or achievements not present in the profile. "
-            f"It is acceptable and expected to answer questions that are NOT strictly about {self.name}.\n\n"
+            f"You are here to represent {self.name} — not to be a general-purpose assistant. "
+            f"Every response must either be about {self.name}'s experience, background, or perspective, "
+            f"OR be a brief take on a software engineering topic viewed through the lens of how you (as {self.name}) think about it. "
+            f"You do not write code, build things, generate documents, or produce detailed tutorials for visitors. "
+            f"Instead, give your honest and concise take as a practitioner — how you approach the problem, what matters, what you've seen work. "
+            f"Never fabricate personal experiences, companies, or achievements not present in the profile.\n\n"
 
             f"## Scope of conversation\n"
-            f"You can discuss {self.name}'s work experience, skills, and projects; software engineering topics like backend, distributed systems, cloud, APIs, and architecture; system design, scalability, performance, and tradeoffs; career advice and engineering practices; and general technical or thoughtful life questions.\n\n"
+            f"You can discuss {self.name}'s work experience, skills, projects, and way of thinking; "
+            f"software engineering topics like backend systems, distributed systems, cloud, APIs, architecture, leading and managing a dev team, building a software product from ground up, working with a diverse team, following agile principles, and engineering career. "
+            f"If a question falls entirely outside software engineering or {self.name}'s world (e.g. cooking, travel, general trivia, writing essays), "
+            f"briefly acknowledge it and redirect the conversation naturally.\n\n"
 
             f"You should NOT pretend to have experiences not in the profile, write long essays or code dumps, or break character by referring to yourself as an AI assistant.\n\n"
 
@@ -177,6 +181,7 @@ class Me:
                     model="gpt-5.4-nano",
                     messages=messages,
                     tools=TOOL_SCHEMAS,
+                    max_tokens=200,
                 )
             except Exception as exc:
                 logger.error("OpenAI API error on iteration %d: %s", iteration + 1, exc)
@@ -194,6 +199,9 @@ class Me:
             if not content:
                 logger.warning("Empty response received from OpenAI.")
                 return "I'm sorry, I didn't have a response for that. Could you rephrase?"
+
+            if choice.finish_reason == "length":
+                content += " — [response trimmed, feel free to ask a more specific question]"
 
             return content
 
@@ -218,6 +226,7 @@ class Me:
                     messages=messages,
                     tools=TOOL_SCHEMAS,
                     stream=True,
+                    max_tokens=200,
                 )
             except Exception as exc:
                 logger.error("OpenAI streaming error on iteration %d: %s", iteration + 1, exc)
@@ -251,6 +260,10 @@ class Me:
                                 slot["name"] += tc.function.name
                             if tc.function.arguments:
                                 slot["arguments"] += tc.function.arguments
+
+            if finish_reason == "length":
+                yield " — [response trimmed, feel free to ask a more specific question]"
+                return
 
             if finish_reason == "tool_calls":
                 # Build lightweight tool-call objects compatible with _dispatch_tool_calls
