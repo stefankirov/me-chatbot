@@ -35,7 +35,7 @@ def chat(request: Request, req: ChatRequest) -> ChatResponse:
     me: Me = request.app.state.me
 
     try:
-        response_text = me.chat(req.message, req.history)
+        response_text = me.chat(req.message, req.history, session_id=req.session_id)
         return ChatResponse(response=response_text)
     except Exception as exc:
         logger.error("Unhandled error in /chat: %s", exc)
@@ -58,7 +58,7 @@ def chat_stream(request: Request, req: ChatRequest) -> StreamingResponse:
 
     def generate():
         try:
-            for token in me.stream_chat(req.message, req.history):
+            for token in me.stream_chat(req.message, req.history, session_id=req.session_id):
                 yield f"data: {json.dumps({'token': token})}\n\n"
         except Exception as exc:
             logger.error("Streaming error: %s", exc)

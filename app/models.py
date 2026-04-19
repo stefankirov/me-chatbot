@@ -11,6 +11,7 @@ _MAX_HISTORY_MESSAGES = 20
 class ChatRequest(BaseModel):
     message: str
     history: list[dict] = []
+    session_id: str | None = None
 
     model_config = {"str_strip_whitespace": True}
 

@@ -43,5 +43,8 @@ class Settings:
     profile_content: str = os.getenv("PROFILE_CONTENT", "").strip()
     profile_file: str = os.getenv("PROFILE_FILE", "profile.txt")
 
+    # Langfuse — env vars are also read directly by the langfuse SDK
+    langfuse_enabled: bool = bool(os.getenv("LANGFUSE_SECRET_KEY", "").strip())
+
 
 settings = Settings()

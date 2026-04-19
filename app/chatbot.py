@@ -5,7 +5,7 @@ import logging
 import os
 from typing import Generator
 
-from openai import OpenAI
+from langfuse.openai import OpenAI  # drop-in replacement; auto-traces all completions
 
 from app.tools import TOOL_REGISTRY, TOOL_SCHEMAS
 from app.config import settings
@@ -168,7 +168,7 @@ class Me:
     # Chat
     # ------------------------------------------------------------------
 
-    def chat(self, message: str, history: list[dict]) -> str:
+    def chat(self, message: str, history: list[dict], session_id: str | None = None) -> str:
         messages = (
             [{"role": "system", "content": self._build_system_prompt()}]
             + history
@@ -181,7 +181,10 @@ class Me:
                     model="gpt-5.4-nano",
                     messages=messages,
                     tools=TOOL_SCHEMAS,
-                    max_tokens=200,
+                    max_completion_tokens=200,
+                    name="me-chatbot",
+                    session_id=session_id,
+                    metadata={"history_length": len(history), "iteration": iteration},
                 )
             except Exception as exc:
                 logger.error("OpenAI API error on iteration %d: %s", iteration + 1, exc)
@@ -208,7 +211,7 @@ class Me:
         logger.error("Exceeded maximum tool-call iterations in chat().")
         return "I'm sorry, something went wrong on my end. Please try again."
 
-    def stream_chat(self, message: str, history: list[dict]) -> Generator[str, None, None]:
+    def stream_chat(self, message: str, history: list[dict], session_id: str | None = None) -> Generator[str, None, None]:
         """
         Yield text tokens as they arrive from OpenAI.
         Handles tool calls mid-stream: accumulates them, executes, then continues streaming.
@@ -226,7 +229,10 @@ class Me:
                     messages=messages,
                     tools=TOOL_SCHEMAS,
                     stream=True,
-                    max_tokens=200,
+                    max_completion_tokens=200,
+                    name="me-chatbot-stream",
+                    session_id=session_id,
+                    metadata={"history_length": len(history), "iteration": iteration},
                 )
             except Exception as exc:
                 logger.error("OpenAI streaming error on iteration %d: %s", iteration + 1, exc)
