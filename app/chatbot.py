@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+from typing import Generator
 
 from openai import OpenAI
 
@@ -173,7 +174,7 @@ class Me:
         for iteration in range(10):
             try:
                 response = self.openai.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gpt-5.4-nano",
                     messages=messages,
                     tools=TOOL_SCHEMAS,
                 )
@@ -196,5 +197,110 @@ class Me:
 
             return content
 
-        logger.error("Exceeded maximum tool-call iterations.")
+        logger.error("Exceeded maximum tool-call iterations in chat().")
         return "I'm sorry, something went wrong on my end. Please try again."
+
+    def stream_chat(self, message: str, history: list[dict]) -> Generator[str, None, None]:
+        """
+        Yield text tokens as they arrive from OpenAI.
+        Handles tool calls mid-stream: accumulates them, executes, then continues streaming.
+        """
+        messages = (
+            [{"role": "system", "content": self._build_system_prompt()}]
+            + history
+            + [{"role": "user", "content": message}]
+        )
+
+        for iteration in range(10):
+            try:
+                stream = self.openai.chat.completions.create(
+                    model="gpt-5.4-nano",
+                    messages=messages,
+                    tools=TOOL_SCHEMAS,
+                    stream=True,
+                )
+            except Exception as exc:
+                logger.error("OpenAI streaming error on iteration %d: %s", iteration + 1, exc)
+                yield "I'm sorry, I couldn't connect right now. Please try again in a moment."
+                return
+
+            # Accumulate the full streamed response for this turn
+            accumulated_content = ""
+            # tool_call_chunks keyed by index, each holding {id, name, arguments}
+            tool_call_chunks: dict[int, dict] = {}
+            finish_reason = None
+
+            for chunk in stream:
+                choice = chunk.choices[0]
+                finish_reason = choice.finish_reason
+                delta = choice.delta
+
+                # Stream text tokens immediately
+                if delta.content:
+                    accumulated_content += delta.content
+                    yield delta.content
+
+                # Accumulate tool call fragments (name + arguments arrive in pieces)
+                if delta.tool_calls:
+                    for tc in delta.tool_calls:
+                        slot = tool_call_chunks.setdefault(tc.index, {"id": "", "name": "", "arguments": ""})
+                        if tc.id:
+                            slot["id"] = tc.id
+                        if tc.function:
+                            if tc.function.name:
+                                slot["name"] += tc.function.name
+                            if tc.function.arguments:
+                                slot["arguments"] += tc.function.arguments
+
+            if finish_reason == "tool_calls":
+                # Build lightweight tool-call objects compatible with _dispatch_tool_calls
+                tool_calls = [
+                    _ToolCall(id=v["id"], name=v["name"], arguments=v["arguments"])
+                    for v in tool_call_chunks.values()
+                ]
+
+                tool_results = self._dispatch_tool_calls(tool_calls)
+
+                # Append the assistant turn (with tool calls) and results to history
+                messages.append({
+                    "role": "assistant",
+                    "content": accumulated_content or None,
+                    "tool_calls": [
+                        {
+                            "id": tc.id,
+                            "type": "function",
+                            "function": {"name": tc.function.name, "arguments": tc.function.arguments},
+                        }
+                        for tc in tool_calls
+                    ],
+                })
+                messages.extend(tool_results)
+                continue  # loop → stream the follow-up response
+
+            # Normal finish — we're done
+            return
+
+        logger.error("Exceeded maximum tool-call iterations in stream_chat().")
+        yield " I'm sorry, something went wrong. Please try again."
+
+
+# ---------------------------------------------------------------------------
+# Lightweight tool-call wrapper (avoids importing private OpenAI types)
+# ---------------------------------------------------------------------------
+
+class _ToolCallFunction:
+    """Mirrors the .function attribute expected by _dispatch_tool_calls."""
+    __slots__ = ("name", "arguments")
+
+    def __init__(self, name: str, arguments: str) -> None:
+        self.name = name
+        self.arguments = arguments
+
+
+class _ToolCall:
+    """Mirrors the tool-call object expected by _dispatch_tool_calls."""
+    __slots__ = ("id", "function")
+
+    def __init__(self, id: str, name: str, arguments: str) -> None:
+        self.id = id
+        self.function = _ToolCallFunction(name=name, arguments=arguments)
