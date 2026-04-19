@@ -183,8 +183,7 @@ class Me:
                     tools=TOOL_SCHEMAS,
                     max_completion_tokens=200,
                     name="me-chatbot",
-                    session_id=session_id,
-                    metadata={"history_length": len(history), "iteration": iteration},
+                    metadata={"history_length": len(history), "iteration": iteration, "session_id": session_id},
                 )
             except Exception as exc:
                 logger.error("OpenAI API error on iteration %d: %s", iteration + 1, exc)
@@ -231,8 +230,7 @@ class Me:
                     stream=True,
                     max_completion_tokens=200,
                     name="me-chatbot-stream",
-                    session_id=session_id,
-                    metadata={"history_length": len(history), "iteration": iteration},
+                    metadata={"history_length": len(history), "iteration": iteration, "session_id": session_id},
                 )
             except Exception as exc:
                 logger.error("OpenAI streaming error on iteration %d: %s", iteration + 1, exc)
