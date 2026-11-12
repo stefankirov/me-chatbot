@@ -44,6 +44,10 @@ resource "azurerm_linux_web_app" "chatbot" {
     # always_on is not supported on the F1 free tier
     always_on = false
 
+    cors {
+      allowed_origins = [for origin in split(",", var.cors_origins) : trimspace(origin)]
+    }
+
     application_stack {
       python_version = "3.12"
     }

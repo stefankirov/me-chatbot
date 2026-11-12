@@ -65,7 +65,7 @@ variable "email_recipient" {
 variable "cors_origins" {
   description = "Comma-separated list of allowed CORS origins (e.g. your personalweb URL)"
   type        = string
-  default     = "*"
+  default     = "https://sdwares.com,https://www.sdwares.com"
 }
 
 variable "profile_content" {
